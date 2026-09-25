@@ -1,39 +1,50 @@
-use bevy::prelude::*;
+//! Tahik - a Sama Dilaut sea-village builder.
 
-#[derive(Component)]
-struct Player;
+mod audio;
+mod boat;
+mod characters;
+mod common;
+mod debug;
+mod families;
+mod fishing;
+mod icons;
+mod market;
+mod prayer;
+mod ui;
+mod village;
+mod water;
+mod weather;
+mod world;
+
+use bevy::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, move_player)
+        .insert_resource(ClearColor(Color::srgb(0.8, 0.88, 0.95)))
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Tahik - Sama Dilaut".into(),
+                resolution: (1600u32, 900u32).into(),
+                ..default()
+            }),
+            ..default()
+        }))
+        .add_plugins((
+            common::CommonPlugin,
+            icons::IconsPlugin,
+            characters::CharacterPlugin,
+            world::WorldPlugin,
+            water::WaterPlugin,
+            weather::WeatherPlugin,
+            boat::BoatPlugin,
+            fishing::FishingPlugin,
+            village::VillagePlugin,
+            families::FamiliesPlugin,
+            prayer::PrayerPlugin,
+            market::MarketPlugin,
+            ui::UiPlugin,
+            audio::NatureAudioPlugin,
+            debug::DebugPlugin,
+        ))
         .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
-    commands.spawn((
-        Sprite::from_color(Color::srgb(0.3, 0.7, 1.0), Vec2::splat(50.0)),
-        Transform::default(),
-        Player,
-    ));
-}
-
-fn move_player(
-    keys: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
-    mut query: Query<&mut Transform, With<Player>>,
-) {
-    let mut dir = Vec2::ZERO;
-    if keys.pressed(KeyCode::ArrowLeft)  { dir.x -= 1.0; }
-    if keys.pressed(KeyCode::ArrowRight) { dir.x += 1.0; }
-    if keys.pressed(KeyCode::ArrowUp)    { dir.y += 1.0; }
-    if keys.pressed(KeyCode::ArrowDown)  { dir.y -= 1.0; }
-    
-    for mut transform in &mut query {
-        transform.translation += (
-            dir.normalize_or_zero() * 300.0 * time.delta_secs())
-        .extend(0.0);
-    }
 }
